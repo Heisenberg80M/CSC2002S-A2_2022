@@ -35,42 +35,27 @@ public class CatchWord extends Thread {
 
 	public void run() {
 			int i = 0;
-			int lowest = 0;
+			FallingWord lowest;
+
 			while (i<noWords) {
 					while(pause.get()) {};
 					if (words[i].matchWord(target)) {
-							sameWords.add(i);
-					}
-				  i++;
-			}
-			if(sameWords.size()==0){
-					return;
-			}
-			else if(sameWords.size()==1){
-					//remove that word from screen
-					words[sameWords.get(0)].resetWord();
-					System.out.println( " score! '" + target); //for checking
-					score.caughtWord(target.length());
-					sameWords.clear();
-					return;
-
-			}
-			else if(sameWords.size()>1){
-					for(int j = 0; j<(sameWords.size()-2); j++){
-								if(words[sameWords.get(j)].getY()>words[sameWords.get(j+1)].getY()){
-										lowest = sameWords.get(j+1);
+							lowest = words[i]; //save the matched falling word and look for a duplicate
+							while(i<noWords){
+									if(words[i].matchWord(target)){ // continue to look for another match
+										if(lowest.getY()<words[i].getY()){
+											lowest=words[i]; //save the one that is lower on the screen
+										}
+									}
+									i++;
 								}
-								else if(words[sameWords.get(j)].getY()<words[sameWords.get(j+1)].getY()){
-										lowest = sameWords.get(j);
-								}
-					}
-					//remove that word from screen
-					words[lowest].resetWord();
-					System.out.println( " score! '" + target); //for checking
-					score.caughtWord(target.length());
-					sameWords.clear();
-					return;
-
+				lowest.resetWord();
+				System.out.println( " score! '" + target); //for checking
+				score.caughtWord(target.length());
+				//FallingWord.increaseSpeed();
+				break;
 			}
+		i++;
 		}
+	}
 }

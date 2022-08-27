@@ -1,6 +1,6 @@
-# A1_Parallel Programming makefile
+# A2_Concurrent Programming makefile
 # Tafadzwa Nyazenga
-# 6 August 2022
+# 24 August 2022
 
 
 JAVA=/usr/bin/java
