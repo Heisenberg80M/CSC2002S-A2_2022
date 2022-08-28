@@ -14,22 +14,24 @@ public class GamePanel extends JPanel implements Runnable {
 		private AtomicBoolean won ; //REMOVE
 
 		private FallingWord[] words;
+		private HungryWord hWord;
 		private int noWords;
 		private final static int borderWidth=25; //appearance - border
 
 		GamePanel(FallingWord[] words, int maxY,
-				 AtomicBoolean d, AtomicBoolean s, AtomicBoolean w) {
-			this.words=words; //shared word list
-			noWords = words.length; //only need to do this once
-			done=d; //REMOVE
-			started=s; //REMOVE
-			won=w; //REMOVE
+				AtomicBoolean d, AtomicBoolean s, AtomicBoolean w, HungryWord hWord) {
+				this.words=words; //shared word list
+				noWords = words.length; //only need to do this once
+				done=d; //REMOVE
+				started=s; //REMOVE
+				won=w; //REMOVE
+				this.hWord = hWord;
 		}
 
 		public void paintComponent(Graphics g) {
-		    int width = getWidth();
-		    int height = getHeight();
-		    g.clearRect(0,0,width,height);//the active space
+		    int width = getWidth()-borderWidth*2;
+		    int height = getHeight()-borderWidth*2;
+		    g.clearRect(borderWidth,borderWidth,width,height);//the active space
 		    g.setColor(Color.pink); //change colour of pen
 		    g.fillRect(borderWidth,height,width,borderWidth); //draw danger zone
 
@@ -37,23 +39,29 @@ public class GamePanel extends JPanel implements Runnable {
 		    g.setFont(new Font("Arial", Font.PLAIN, 26));
 		   //draw the words
 		    if (!started.get()) {
-		    	g.setFont(new Font("Arial", Font.BOLD, 26));
-				g.drawString("Type all the words before they hit the red zone,press enter after each one.",borderWidth*2,height/2);
+		    	g.setFont(new Font("Arial", Font.BOLD, 22));
+					g.drawString("Type all the words before they hit the red zone,press enter after each one.",borderWidth*2,height/2);
 
 		    }
 		    else if (!done.get()) {
 		    	for (int i=0;i<noWords;i++){
-		    		g.drawString(words[i].getWord(),words[i].getX(),words[i].getY()+20);
+		    		g.drawString(words[i].getWord(),words[i].getX(),words[i].getY());
+						g.setColor(Color.GREEN);
+						g.drawString(hWord.getWord(), hWord.getX() + borderWidth, hWord.getY());
+						g.setColor(Color.BLACK);
 		    	}
 		    	g.setColor(Color.lightGray); //change colour of pen
 		    	g.fillRect(borderWidth,0,width,borderWidth);
+					g.clearRect(width + borderWidth, 0, borderWidth, height);
+					g.clearRect(0, 0, borderWidth, height);
 		   }
 		   else { if (won.get()) {
 			   g.setFont(new Font("Arial", Font.BOLD, 36));
 			   g.drawString("Well done!",width/3,height/2);
-		   } else {
+		   }
+			 else {
 			   g.setFont(new Font("Arial", Font.BOLD, 36));
-			   g.drawString("Game over!",width/2,height/2);
+			   g.drawString("Game over!",(width/2),(height/2));
 		   }
 		   }
 		}

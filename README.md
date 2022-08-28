@@ -1,7 +1,7 @@
 # CSC2002S-Assignment 2 2022
-# Parallel Programming for image processing game
+# Concurrent Programming in TypingTutor Game
 ## Goal
-### Compare Sequential vs Parallel implementations of a Mean filter and a Median filter on different size images and window sizes
+### Extending the Multi-threaded Typing Tutor Game with a Hungry Word
 
 ## Part 1: Program
 ### Build
@@ -12,22 +12,15 @@ $ make
 ```
 $ make clean
 ```
-### run Serial Mean Program
+### run with Dictionary File
 ```
-$ make runMeanS
+$ java -cp bin typingTutor.TypingTutorApp <Total no of Words> <Words falling at a Time> <Dictionary File>
 ```
-### run Parallel Mean Program
+### run without Dictionary File
 ```
-$ make runMeanP
+$ java -cp bin typingTutor.TypingTutorApp <Total no of Words> <Words falling at a Time>
 ```
-### run Serial Median Program
-```
-$ make runMedianS
-```
-### run Parallel Median Program
-```
-$ make runMedianP
-```
+
 ## Documentation
 ### generate Javadocs
 ```

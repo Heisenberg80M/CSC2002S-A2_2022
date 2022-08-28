@@ -11,7 +11,7 @@ public class CatchWord extends Thread {
 	static AtomicBoolean pause; //REMOVE
 
 	private static  FallingWord[] words; //list of words
-	private static  ArrayList<Integer> sameWords = new ArrayList<Integer>(); //list of indecies of common words in words array
+	private static HungryWord hungryWord;
 	private static int noWords; //how many
 	private static Score score; //user score
 
@@ -22,6 +22,10 @@ public class CatchWord extends Thread {
 	public static void setWords(FallingWord[] wordList) {
 		words=wordList;
 		noWords = words.length;
+	}
+
+	public static void setHungryWord(HungryWord hungry) {
+		hungryWord = hungry;
 	}
 
 	public static void setScore(Score sharedScore) {
@@ -39,6 +43,11 @@ public class CatchWord extends Thread {
 
 			while (i<noWords) {
 					while(pause.get()) {};
+					if (hungryWord.matchWord(target)) {
+								System.out.println(" score! hungry: " + target); // for checking
+								score.caughtWord(target.length());
+								break;
+						}
 					if (words[i].matchWord(target)) {
 							lowest = words[i]; //save the matched falling word and look for a duplicate
 							while(i<noWords){

@@ -16,7 +16,7 @@ DOCDIR=doc
 $(BINDIR)/%.class:$(SRCDIR)/%.java
 	$(JAVAC) -d $(BINDIR)/ -cp $(BINDIR) $<
 
-CLASSES= WordDictionary.class Score.class ScoreUpdater.class FallingWord.class CatchWord.class WordMover.class GamePanel.class TypingTutorApp.class
+CLASSES= WordDictionary.class Score.class ScoreUpdater.class FallingWord.class HungryWord.class CatchWord.class HungryWordMover.class WordMover.class GamePanel.class TypingTutorApp.class
 CLASS_FILES=$(CLASSES:%.class=$(BINDIR)/%.class)
 
 default: $(CLASS_FILES)

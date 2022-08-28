@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 			static int noWords=4;
 			static int totalWords;
 
-			static int frameX=1200;
+			static int frameX=1000;
 			static int frameY=600;
 			static int yLimit=480;
 
@@ -28,6 +28,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 			static FallingWord[] words;
 			static WordMover[] wrdShft;
 			static CountDownLatch startLatch; //so threads can start at once
+
+
+			static HungryWord hungryWord = new HungryWord(); // The hungry word
+			static HungryWordMover hungryMover; // hungry word mover
+
 
 			static AtomicBoolean started;
 			static AtomicBoolean pause;
@@ -50,7 +55,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 	        g.setLayout(new BoxLayout(g, BoxLayout.PAGE_AXIS));
 	      	g.setSize(frameX,frameY);
 
-					gameWindow = new GamePanel(words,yLimit,done,started,won);
+					gameWindow = new GamePanel(words,yLimit,done,started,won, hungryWord);
 					gameWindow.setSize(frameX,yLimit+100);
 			    g.add(gameWindow);
 
@@ -66,6 +71,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 			    txt.add(missed);
 			    txt.add(scr);
 
+
 			    scoreD = new ScoreUpdater(caught, missed,scr,score,done,won,totalWords);      //thread to update score
 
 			   	final JTextField textEntry = new JTextField("",20);
@@ -79,6 +85,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 						    		  catchThread.start(); //set 'm running
 						    		  textEntry.setText("");
 						    		  textEntry.requestFocus();
+
+											if(score.getCaught()==totalWords){
+													won.set(true);
+													System.out.println("WON!");
+											}
+
 					    	  }
 					    	  else textEntry.setText("");
 					      }
@@ -97,22 +109,27 @@ import java.util.concurrent.atomic.AtomicBoolean;
 			    // add the listener to the jbutton to handle the "pressed" event
 				  startB.addActionListener(new ActionListener() {
 			    public void actionPerformed(ActionEvent e) {
-				    	won.set(false);
-				    	done.set(false);
-				    	started.set(true);
-				    	if (pause.get()) { //this is a restart from pause
-				    			pause.set(false);
-				    	}
-							else { //user quit last game
-				    			score.reset();
-									FallingWord.resetSpeed();
-				    			done.set(false);
-									startLatch = new CountDownLatch(1); //so threads can start at once
-									createWordMoverThreads();   	 //create new threads for next game
-					    		startLatch.countDown(); //set wordMovers going - must have barrier[]
-				    	}
-				    	textEntry.requestFocus();
-	      		}
+							//while(!started.get()){
+									won.set(false);
+									done.set(false);
+									started.set(true);
+									if (pause.get()) { //this is a restart from pause
+											pause.set(false);
+									}
+									else { //user quit last game
+											score.reset();
+											FallingWord.resetSpeed();
+											HungryWord.resetSpeed();
+											done.set(false);
+											startLatch = new CountDownLatch(1); //so threads can start at once
+											createWordMoverThreads();   	 //create new threads for next game
+											startLatch.countDown(); //set wordMovers going - must have barrier[]
+									}
+									textEntry.requestFocus();
+								//}
+
+							}
+
 				  });//finish addActionListener
 
 			   	//the Pause Button
@@ -137,7 +154,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 							   	for (int i=0;i<noWords;i++) {
 							     		try {
 							     			if (wrdShft[i].isAlive())	{
-											wrdShft[i].join();}
+														wrdShft[i].join();
+													}
+											if (hungryMover.isAlive()) {
+														hungryMover.join();
+													}
+
 										} catch (InterruptedException e1) {
 											// TODO Auto-generated catch block
 											e1.printStackTrace();
@@ -194,6 +216,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 				    for (int i=0;i<noWords;i++) {
 				    		wrdShft[i] = new WordMover(words[i],dict,score,startLatch,done,pause);
 				    }
+
+						hungryWord.setWord(dict.getNewWord());
+						hungryWord.setY(frameY / 2 - 50);
+						hungryWord.setMaxX(gameWindow.getWidth() - 50);
+
+						hungryMover = new HungryWordMover(hungryWord, dict, score, startLatch, done, pause);
+						hungryMover.setWords(words);
+						hungryMover.start();
+
 			        //word movers waiting on starting line
 			     	for (int i=0;i<noWords;i++) {
 			     		wrdShft[i] .start();
@@ -233,27 +264,33 @@ import java.util.concurrent.atomic.AtomicBoolean;
 								totalWords=Integer.parseInt(args[0]);  //total words to fall
 								noWords=Integer.parseInt(args[1]); // total words falling at any point
 								assert(totalWords>=noWords); //
+								System.out.println("No dict entered!");
 					} else if (args.length==3) {
 								totalWords=Integer.parseInt(args[0]);  //total words to fall
 								noWords=Integer.parseInt(args[1]); // total words falling at any point
 								assert(totalWords>=noWords); //
 								String[] tmpDict=getDictFromFile(args[2]); //file of words
-								if (tmpDict!=null)
+								if (tmpDict!=null){
 									dict= new WordDictionary(tmpDict);
+								}
+								System.out.println("dict entered!");
+
 					}
 
 					FallingWord.dict=dict; //set the class dictionary for the words.
+					HungryWord.dict = dict; // set the class dictionary for the words.
 
 					words = new FallingWord[noWords];  //array for the  current chosen words from dict
 					wrdShft = new WordMover[noWords]; //array for the threads that animate the words
 
 					CatchWord.setWords(words);  //class setter - static method
+					CatchWord.setHungryWord(hungryWord);
 					CatchWord.setScore(score);  //class setter - static method
 					CatchWord.setFlags(done,pause); //class setter - static method
 
 					setupGUI(frameX, frameY, yLimit);
 
 			 		startLatch = new CountDownLatch(1); //REMOVE so threads can start at once
-			    	createThreads();
-			       	}
+		    	createThreads();
+       	}
 	}
